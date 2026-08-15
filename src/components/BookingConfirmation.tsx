@@ -1,26 +1,15 @@
 import React, { useEffect } from 'react';
-import { BookingResult, Slot } from '../types';
 
-interface Props {
-  result: BookingResult | null;
-  slot: Slot | null;
-  displayTimezone: string;
-  onClose: () => void;
-}
-
-function formatTime(isoString: string): string {
+function formatTime(isoString) {
   const d = new Date(isoString);
-  const h = String(d.getUTCHours()).padStart(2, '0');
-  const m = String(d.getUTCMinutes()).padStart(2, '0');
-  return `${h}:${m}`;
+  return `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
 }
 
-export const BookingConfirmation: React.FC<Props> = ({ result, slot, displayTimezone, onClose }) => {
-  // Auto-dismiss success toast after 5 seconds
+export const BookingConfirmation = ({ result, slot, displayTimezone, onClose }) => {
   useEffect(() => {
     if (result?.success) {
-      const timer = setTimeout(onClose, 5000);
-      return () => clearTimeout(timer);
+      const t = setTimeout(onClose, 5000);
+      return () => clearTimeout(t);
     }
   }, [result, onClose]);
 
@@ -30,38 +19,36 @@ export const BookingConfirmation: React.FC<Props> = ({ result, slot, displayTime
     const start = formatTime(slot.startDisplay);
     const end   = formatTime(slot.endDisplay);
     return (
-      <div className="toast toast-success" role="alert" aria-live="polite" id="booking-success-toast">
-        <div className="toast-icon">✅</div>
+      <div className="toast toast-success" role="alert" id="booking-success-toast">
+        <div className="toast-icon-wrap">✅</div>
         <div className="toast-content">
           <div className="toast-title">Booking Confirmed!</div>
           <div className="toast-body">
             {start} – {end} <span className="toast-tz">({displayTimezone})</span>
           </div>
-          <div className="toast-id">ID: {result.booking.id.slice(0, 8)}…</div>
+          <div className="toast-id">Ref: {result.booking.id.slice(0,8)}…</div>
         </div>
-        <button className="toast-close" onClick={onClose} aria-label="Dismiss notification">×</button>
-        <div className="toast-progress" />
+        <button className="toast-close" onClick={onClose} aria-label="Dismiss">×</button>
+        <div className="toast-bar" />
       </div>
     );
   }
 
-  // Error / conflict
-  const errorResult = result as { success: false; error: string; isConflict: boolean };
+  const err = result;
   return (
     <div
-      className={`toast ${errorResult.isConflict ? 'toast-conflict' : 'toast-error'}`}
+      className={`toast ${err.isConflict ? 'toast-conflict' : 'toast-error'}`}
       role="alert"
-      aria-live="assertive"
       id="booking-error-toast"
     >
-      <div className="toast-icon">{errorResult.isConflict ? '⚡' : '❌'}</div>
+      <div className="toast-icon-wrap">{err.isConflict ? '⚡' : '❌'}</div>
       <div className="toast-content">
         <div className="toast-title">
-          {errorResult.isConflict ? 'Slot Just Taken!' : 'Booking Failed'}
+          {err.isConflict ? 'Slot Just Taken!' : 'Booking Failed'}
         </div>
-        <div className="toast-body">{errorResult.error}</div>
+        <div className="toast-body">{err.error}</div>
       </div>
-      <button className="toast-close" onClick={onClose} aria-label="Dismiss notification">×</button>
+      <button className="toast-close" onClick={onClose} aria-label="Dismiss">×</button>
     </div>
   );
 };

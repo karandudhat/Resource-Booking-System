@@ -1,31 +1,31 @@
 import React from 'react';
-import { Resource } from '../types';
 
-interface Props {
-  resources: Resource[];
-  selected: Resource | null;
-  onSelect: (r: Resource) => void;
-  loading: boolean;
-}
-
-const DAY_NAMES: Record<number, string> = {
-  1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 7: 'Sun',
-};
-
-export const ResourceSelector: React.FC<Props> = ({ resources, selected, onSelect, loading }) => {
+export const ResourceSelector = ({ resources, selected, onSelect, loading }) => {
   if (loading) {
     return (
       <div className="resource-skeleton">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="resource-card skeleton" />
-        ))}
+        {[1, 2, 3].map(i => <div key={i} className="skeleton" />)}
       </div>
     );
   }
 
+  if (!resources || resources.length === 0) {
+    return (
+      <div className="resource-skeleton">
+        {[1, 2, 3].map(i => <div key={i} className="skeleton" />)}
+      </div>
+    );
+  }
+
+  const icons = { London: '🏢', York: '🎙️', Kolkata: '🔬' };
+  const getIcon = (name) => {
+    for (const [k, v] of Object.entries(icons)) if (name.includes(k)) return v;
+    return '📍';
+  };
+
   return (
-    <div className="resource-list" role="listbox" aria-label="Select a resource">
-      {resources.map((r) => (
+    <div className="resource-list" role="listbox">
+      {resources.map(r => (
         <button
           key={r.id}
           className={`resource-card ${selected?.id === r.id ? 'selected' : ''}`}
@@ -34,14 +34,20 @@ export const ResourceSelector: React.FC<Props> = ({ resources, selected, onSelec
           aria-selected={selected?.id === r.id}
           id={`resource-btn-${r.id}`}
         >
-          <div className="resource-icon">
-            {r.name.includes('Room') ? '🏢' : r.name.includes('Studio') ? '🎙️' : '🔬'}
+          <div className="resource-card-bg" />
+          <div className="resource-icon-wrap">
+            <span>{getIcon(r.name)}</span>
           </div>
           <div className="resource-info">
             <span className="resource-name">{r.name}</span>
-            <span className="resource-tz">{r.timezone}</span>
+            <div className="resource-tz-row">
+              <span className="tz-dot" />
+              <span className="resource-tz">{r.timezone}</span>
+            </div>
           </div>
-          {selected?.id === r.id && <div className="resource-check">✓</div>}
+          {selected?.id === r.id && (
+            <div className="resource-check">✓</div>
+          )}
         </button>
       ))}
     </div>
