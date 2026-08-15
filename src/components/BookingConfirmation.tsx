@@ -46,19 +46,20 @@ export const BookingConfirmation: React.FC<Props> = ({ result, slot, displayTime
   }
 
   // Error / conflict
+  const errorResult = result as { success: false; error: string; isConflict: boolean };
   return (
     <div
-      className={`toast ${result.isConflict ? 'toast-conflict' : 'toast-error'}`}
+      className={`toast ${errorResult.isConflict ? 'toast-conflict' : 'toast-error'}`}
       role="alert"
       aria-live="assertive"
       id="booking-error-toast"
     >
-      <div className="toast-icon">{result.isConflict ? '⚡' : '❌'}</div>
+      <div className="toast-icon">{errorResult.isConflict ? '⚡' : '❌'}</div>
       <div className="toast-content">
         <div className="toast-title">
-          {result.isConflict ? 'Slot Just Taken!' : 'Booking Failed'}
+          {errorResult.isConflict ? 'Slot Just Taken!' : 'Booking Failed'}
         </div>
-        <div className="toast-body">{result.error}</div>
+        <div className="toast-body">{errorResult.error}</div>
       </div>
       <button className="toast-close" onClick={onClose} aria-label="Dismiss notification">×</button>
     </div>
