@@ -2,7 +2,12 @@ import React, { useEffect } from 'react';
 
 function formatTime(isoString) {
   const d = new Date(isoString);
-  return `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;
+  let h = d.getUTCHours();
+  const m = String(d.getUTCMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  h = h ? h : 12; // convert 0 to 12
+  return `${h}:${m} ${ampm}`;
 }
 
 export const BookingConfirmation = ({ result, slot, displayTimezone, onClose }) => {
