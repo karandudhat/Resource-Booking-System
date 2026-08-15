@@ -1,70 +1,135 @@
-# Getting Started with Create React App
+# Resource Booking System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-stack booking system for shared resources — meeting rooms and studio spaces. Built with **React/TypeScript**, **NestJS**, and **PostgreSQL**.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## How to Run
 
-### `npm start`
+### Prerequisites
+- Docker + Docker Compose, **or** Node 20 + PostgreSQL 15 locally.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Option A — Docker Compose (recommended)
+```bash
+git clone <repo>
+cd <repo>
+docker-compose up --build
+```
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001/api
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Option B — Local (without Docker)
 
-### `npm test`
+**1. Start PostgreSQL** (ensure it's running locally):
+```bash
+# macOS with Homebrew
+brew services start postgresql@15
+createdb booking_db
+createuser booking_user
+psql -c "ALTER USER booking_user WITH PASSWORD 'booking_pass';"
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+**2. Backend:**
+```bash
+cd backend
+cp .env.example .env          # edit DATABASE_URL if needed
+npm install
+npm run migrate               # creates tables + constraints
+npm run seed                  # inserts 3 resources
+npm run start:dev             # starts on port 3001
+```
 
-### `npm run build`
+**3. Frontend:**
+```bash
+cd ..  # repo root
+npm install
+npm start                     # starts on port 3000
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Running the concurrency test:
+```bash
+# Requires the database to be running and migrated + seeded
+cd backend
+npm run test:concurrency
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## How I Stop Double-Booking
 
-### `npm run eject`
+**The database is the single source of truth.** Application code alone can't prevent double-booking under concurrency — a SELECT-then-INSERT leaves a TOCTOU gap where two threads can both read "slot available" and both succeed.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+My guarantee comes from a **PostgreSQL exclusion constraint** on the `bookings` table:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```sql
+EXCLUDE USING gist (
+  resource_id WITH =,
+  tstzrange(start_time, end_time, '[)') WITH &&
+)
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+This tells PostgreSQL: for any two bookings on the same resource, their time ranges must not overlap. The `&&` operator tests range overlap; `'[)'` gives half-open intervals (so a slot ending at 10:00 and one starting at 10:00 **don't** conflict — correct boundary semantics).
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Under concurrent load:
+1. Two simultaneous `INSERT` statements hit the database.
+2. PostgreSQL serialises them at the **GiST index level** — the second writer waits until the first commits.
+3. The second insert detects the overlapping committed row and raises **error code `23P01` (exclusion_violation)**.
+4. The API catches `23P01` and returns **HTTP 409 Conflict**.
 
-## Learn More
+The concurrency test (`backend/test/bookings.concurrency.spec.ts`) fires **10 simultaneous requests** for the same slot using `Promise.all` and asserts exactly **1 HTTP 201** and **9 HTTP 409s**, then verifies the database contains exactly one row.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## How I Handle Timezones and DST
 
-### Code Splitting
+- **Storage**: every `start_time`/`end_time` in `bookings` is `TIMESTAMPTZ` (UTC). Local wall-clock times are never stored.
+- **Availability**: each resource's availability is defined as `(day_of_week, start_time TIME, end_time TIME)` in its own IANA timezone (e.g., `Europe/London`). The `TIME` columns store wall-clock hours like "09:00".
+- **Slot generation** uses **Luxon** with IANA timezone rules:
+  ```
+  1. Parse the requested date in the resource's timezone → get day-of-week
+  2. Set hour=9, minute=0 on that date in the resource's zone (Luxon resolves DST)
+  3. Convert to UTC → walk in 60-min increments to generate slots
+  ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+**DST edge cases:**
+- **Spring-forward** (Europe/London, 2025-03-30): clocks jump 01:00→02:00. Setting hour=9 gives 09:00 BST (UTC+1) = 08:00 UTC. No missing or duplicated slots — Luxon resolves correctly via the IANA database.
+- **Fall-back** (2025-10-26): clocks repeat 01:00 local. Setting hour=9 unambiguously gives 09:00 GMT (UTC+0). The ambiguous 1am hour never appears in a 09:00–17:00 window.
+- Since we always work in UTC arithmetic once the window boundaries are established, DST "extra" or "missing" hours in the middle of the night don't affect our 9am–5pm slots.
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Slot Length
 
-### Making a Progressive Web App
+**60 minutes.** Defined in `backend/src/slots/slots.service.ts` as `SLOT_DURATION_HOURS = 1`. To change it, update that constant — everything else (slot generation, boundary math) adjusts automatically.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## Resources (Seeded)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+| Resource | Timezone | Hours | Days |
+|---|---|---|---|
+| Room A — London | `Europe/London` *(DST)* | 09:00–17:00 | Mon–Fri |
+| Studio B — New York | `America/New_York` *(DST)* | 08:00–18:00 | Mon–Sat |
+| Lab C — Kolkata | `Asia/Kolkata` *(no DST)* | 10:00–20:00 | Mon–Sun |
 
-### Deployment
+Fixed UUIDs: `11111111-…`, `22222222-…`, `33333333-…` — used by the concurrency test.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
 
-### `npm run build` fails to minify
+## Assumptions
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **Auth**: a hardcoded `userId = "demo-user"` is sent on all bookings — no login flow.
+- **No admin UI**: resources are seeded via `npm run seed`.
+- **No recurrence exceptions**: pure weekly patterns, no holidays.
+- **Slot granularity**: slots snap to exact hour boundaries within the availability window.
+
+---
+
+## What I'd Do with More Time
+
+1. **Cancellations**: add `DELETE /bookings/:id` with ownership check.
+2. **Week view**: show a full week at a glance, not just one day.
+3. **Optimistic UI**: mark the slot "pending" in the frontend before the API responds, with rollback on 409.
+4. **Real auth**: replace the hardcoded userId with a JWT so users can see their own bookings.
+5. **Custom slot lengths**: let each resource define its own slot duration in the DB.
+6. **Monitoring**: add a Prometheus counter for `booking_conflicts_total` to track the constraint firing rate under real load.
