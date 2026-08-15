@@ -19,8 +19,9 @@
 --    do NOT overlap — correct boundary semantics.
 -- ============================================================
 
--- Required for using = operator on non-range types in EXCLUDE
-CREATE EXTENSION IF NOT EXISTS btree_gist;
+-- NOTE: btree_gist is installed by setup-db.sh (requires superuser).
+-- If you skipped setup-db.sh, run this manually as a superuser first:
+--   psql -d booking_db -c "CREATE EXTENSION IF NOT EXISTS btree_gist;"
 
 -- Resources: rooms, consultants, etc.
 CREATE TABLE IF NOT EXISTS resources (
