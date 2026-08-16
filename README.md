@@ -41,7 +41,7 @@ npm run start:dev             # starts on port 3001
 
 **3. Frontend:**
 ```bash
-cd ..  # repo root
+cd ../frontend
 npm install
 npm start                     # starts on port 3000
 ```
