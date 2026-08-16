@@ -133,5 +133,3 @@ Fixed UUIDs: `11111111-…`, `22222222-…`, `33333333-…` — used by the conc
 4. **Real auth**: replace the hardcoded userId with a JWT so users can see their own bookings.
 5. **Custom slot lengths**: let each resource define its own slot duration in the DB.
 6. **Monitoring**: add a Prometheus counter for `booking_conflicts_total` to track the constraint firing rate under real load.
-# Resource-Booking-System
-# Resource-Booking-System
