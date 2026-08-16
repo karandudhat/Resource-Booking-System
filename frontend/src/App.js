@@ -47,9 +47,10 @@ export default function App() {
   const [selectedDate,     setSelectedDate]     = useState(todayString());
   const [displayTimezone,  setDisplayTimezone]  = useState(detectTimezone);
 
-  const [bookingSlot,   setBookingSlot]   = useState(null);
-  const [bookingResult, setBookingResult] = useState(null);
-  const [resultSlot,    setResultSlot]    = useState(null);
+  const [confirmingSlot, setConfirmingSlot] = useState(null);
+  const [bookingSlot,    setBookingSlot]    = useState(null);
+  const [bookingResult,  setBookingResult]  = useState(null);
+  const [resultSlot,     setResultSlot]     = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   /* Try to load real resources from backend */
@@ -73,21 +74,34 @@ export default function App() {
     displayTimezone,
   );
 
-  const handleBook = useCallback(async slot => {
+  // Step 1: User clicks "Book Slot" → Trigger confirmation prompt
+  const handleSlotClick = useCallback((slot) => {
     if (!selectedResource || !backendOnline) return;
+    setConfirmingSlot(slot);
+  }, [selectedResource, backendOnline]);
+
+  // Step 2: User confirms booking in modal
+  const handleConfirmBooking = useCallback(async (slot) => {
+    setConfirmingSlot(null);
     setBookingSlot(slot);
     setBookingResult(null);
+
     const result = await api.createBooking({
       resourceId: selectedResource.id,
       startUtc: slot.startUtc,
       endUtc:   slot.endUtc,
     });
+
     setBookingSlot(null);
     setResultSlot(slot);
     setBookingResult(result);
     refresh();
     setRefreshTrigger(prev => prev + 1);
-  }, [selectedResource, backendOnline, refresh]);
+  }, [selectedResource, refresh]);
+
+  const handleCancelConfirm = useCallback(() => {
+    setConfirmingSlot(null);
+  }, []);
 
   const dismissResult = useCallback(() => {
     setBookingResult(null);
@@ -215,7 +229,7 @@ export default function App() {
             loading={slotsLoading}
             error={slotsError}
             displayTimezone={displayTimezone}
-            onBook={handleBook}
+            onBook={handleSlotClick}
             bookingSlot={bookingSlot}
           />
 
@@ -230,12 +244,16 @@ export default function App() {
 
       </main>
 
-      {/* Booking Modal / Confirmation */}
+      {/* Booking Confirmation / Modal Flow */}
       <BookingConfirmation
+        confirmingSlot={confirmingSlot}
+        resourceName={selectedResource?.name}
         result={bookingResult}
         slot={resultSlot}
         displayTimezone={displayTimezone}
-        onClose={dismissResult}
+        onConfirm={handleConfirmBooking}
+        onCancelConfirm={handleCancelConfirm}
+        onCloseResult={dismissResult}
       />
     </div>
   );

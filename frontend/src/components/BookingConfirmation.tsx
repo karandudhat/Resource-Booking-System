@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 function formatTime(isoString) {
   const d = new Date(isoString);
@@ -10,37 +10,49 @@ function formatTime(isoString) {
   return `${h}:${m} ${ampm}`;
 }
 
-function generateGoogleCalendarUrl(slot, displayTimezone) {
-  try {
-    const startStr = slot.startUtc.replace(/-|:|\.\d+/g, '');
-    const endStr = slot.endUtc.replace(/-|:|\.\d+/g, '');
-    const title = encodeURIComponent('Resource Booking');
-    const details = encodeURIComponent(`Booking Reference: ${slot.startUtc}\nTimezone: ${displayTimezone}`);
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startStr}/${endStr}&details=${details}`;
-  } catch (e) {
-    return '#';
-  }
-}
+export const BookingConfirmation = ({
+  confirmingSlot,
+  resourceName,
+  result,
+  slot,
+  displayTimezone,
+  onConfirm,
+  onCancelConfirm,
+  onCloseResult,
+}) => {
+  const [countdown, setCountdown] = useState<number>(4);
 
-export const BookingConfirmation = ({ result, slot, displayTimezone, onClose }) => {
-  if (!result || !slot) return null;
+  // Auto-close success modal after 4 seconds
+  useEffect(() => {
+    if (result?.success) {
+      setCountdown(4);
+      const interval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            onCloseResult();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
-  if (result.success) {
-    const start = formatTime(slot.startDisplay);
-    const end   = formatTime(slot.endDisplay);
-    const gCalUrl = generateGoogleCalendarUrl(slot, displayTimezone);
+      return () => clearInterval(interval);
+    }
+  }, [result, onCloseResult]);
 
+  // Step 1: User clicked "Book Slot" → Ask for Confirmation
+  if (confirmingSlot) {
+    const start = formatTime(confirmingSlot.startDisplay);
+    const end   = formatTime(confirmingSlot.endDisplay);
     return (
-      <div className="ui-dialog-backdrop" onClick={onClose}>
+      <div className="ui-dialog-backdrop" onClick={onCancelConfirm}>
         <div className="ui-dialog-content" onClick={e => e.stopPropagation()}>
           <div className="dialog-header">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span className="ui-badge ui-badge-success">Confirmed</span>
-              <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>Ref: {result.booking.id.slice(0, 8)}</span>
-            </div>
-            <h3 className="dialog-title" style={{ marginTop: 8 }}>Booking Confirmed</h3>
+            <span className="ui-badge ui-badge-warning">Confirmation Required</span>
+            <h3 className="dialog-title" style={{ marginTop: 8 }}>Confirm Booking</h3>
             <p className="dialog-description">
-              Your resource slot has been atomically reserved.
+              Are you sure you want to reserve this slot for <strong>{resourceName}</strong>?
             </p>
           </div>
 
@@ -48,17 +60,54 @@ export const BookingConfirmation = ({ result, slot, displayTimezone, onClose }) 
             {start} – {end} ({displayTimezone})
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-            <a
-              href={gCalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+          <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+            <button
               className="ui-button ui-button-default"
-              style={{ textDecoration: 'none' }}
+              onClick={() => onConfirm(confirmingSlot)}
+              style={{ flex: 1 }}
             >
-              Add to Google Calendar
-            </a>
-            <button className="ui-button ui-button-outline" onClick={onClose}>
+              Confirm &amp; Reserve
+            </button>
+            <button
+              className="ui-button ui-button-outline"
+              onClick={onCancelConfirm}
+              style={{ flex: 1 }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 2: Show Result (Success / Error)
+  if (!result || !slot) return null;
+
+  if (result.success) {
+    const start = formatTime(slot.startDisplay);
+    const end   = formatTime(slot.endDisplay);
+
+    return (
+      <div className="ui-dialog-backdrop" onClick={onCloseResult}>
+        <div className="ui-dialog-content" onClick={e => e.stopPropagation()}>
+          <div className="dialog-header">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span className="ui-badge ui-badge-success">Confirmed</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Auto-closing in {countdown}s</span>
+            </div>
+            <h3 className="dialog-title" style={{ marginTop: 8 }}>Booking Confirmed!</h3>
+            <p className="dialog-description">
+              Your slot has been atomically reserved in the database.
+            </p>
+          </div>
+
+          <div className="dialog-body-box">
+            {start} – {end} ({displayTimezone})
+          </div>
+
+          <div style={{ marginTop: 8 }}>
+            <button className="ui-button ui-button-outline" onClick={onCloseResult}>
               Done
             </button>
           </div>
@@ -69,7 +118,7 @@ export const BookingConfirmation = ({ result, slot, displayTimezone, onClose }) 
 
   const err = result;
   return (
-    <div className="ui-dialog-backdrop" onClick={onClose}>
+    <div className="ui-dialog-backdrop" onClick={onCloseResult}>
       <div className="ui-dialog-content" onClick={e => e.stopPropagation()}>
         <div className="dialog-header">
           <span className="ui-badge ui-badge-warning">{err.isConflict ? 'Slot Conflict' : 'Booking Error'}</span>
@@ -82,7 +131,7 @@ export const BookingConfirmation = ({ result, slot, displayTimezone, onClose }) 
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-          <button className="ui-button ui-button-secondary" onClick={onClose}>
+          <button className="ui-button ui-button-secondary" onClick={onCloseResult}>
             Close
           </button>
         </div>
