@@ -1,4 +1,4 @@
-import { Module, Global, OnModuleDestroy } from '@nestjs/common';
+import { Module, Global} from '@nestjs/common';
 import { Pool } from 'pg';
 
 export const DB_POOL = 'DB_POOL';
