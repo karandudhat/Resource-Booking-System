@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════
    Resource Booking System — Exact Match Pixel-Perfect UI
-   Clean, modern, crisp SaaS Dashboard Aesthetic
+   Clean, modern, crisp SaaS Dashboard Aesthetic (Viewport Locked Layout)
    ═══════════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -38,18 +38,20 @@
   padding: 0;
 }
 
-body {
+html, body {
+  height: 100vh;
+  overflow: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: var(--bg-page);
   color: var(--text-main);
-  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
 
 .app-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* ── Top Navbar ──────────────────────────────────────────────────── */
@@ -57,8 +59,7 @@ body {
   height: 68px;
   background: #ffffff;
   border-bottom: 1px solid var(--border-color);
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 100;
 }
 
@@ -199,14 +200,17 @@ body {
   color: var(--text-muted);
 }
 
-/* ── Main Layout ─────────────────────────────────────────────────── */
+/* ── Main Flex Layout (Viewport Locked, Independent Scroll) ──────── */
 .main-container {
+  flex: 1;
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  padding: 24px;
+  padding: 20px 24px;
   display: flex;
   gap: 24px;
+  height: calc(100vh - 68px);
+  overflow: hidden;
 }
 
 /* ── Left Sidebar ────────────────────────────────────────────────── */
@@ -216,6 +220,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .sidebar-box {
@@ -394,6 +401,9 @@ body {
   flex-direction: column;
   gap: 20px;
   min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .resource-header-row {
@@ -429,12 +439,6 @@ body {
   margin-top: 4px;
 }
 
-.action-btn-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .btn-white {
   padding: 8px 16px;
   border-radius: 8px;
@@ -451,20 +455,6 @@ body {
 
 .btn-white:hover {
   background: #f8fafc;
-}
-
-.btn-black {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
-  background: #0f172a;
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 /* ── Slot Time Section Cards ─────────────────────────────────────── */
@@ -594,7 +584,6 @@ body {
   font-size: 16px;
   font-weight: 700;
   color: var(--text-main);
-  margin-bottom: 16px;
 }
 
 .custom-table {
@@ -628,18 +617,53 @@ body {
   border-radius: 9999px;
 }
 
-.view-all-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #4f46e5;
-  text-decoration: none;
-  margin-top: 14px;
+/* ── Interactive 3-Dot Action Popover ───────────────────────────── */
+.table-action-popover {
+  position: absolute;
+  right: 12px;
+  top: 40px;
+  z-index: 50;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  padding: 6px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-/* ── Modal Dialog Overlay & Card (Fixed Position Backdrop) ────────── */
+.popover-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-main);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.popover-item:hover {
+  background: #f1f5f9;
+}
+
+.popover-item.danger {
+  color: #dc2626;
+}
+
+.popover-item.danger:hover {
+  background: #fef2f2;
+}
+
+/* ── Modal Dialog Overlay ────────────────────────────────────────── */
 .ui-dialog-backdrop {
   position: fixed;
   inset: 0;

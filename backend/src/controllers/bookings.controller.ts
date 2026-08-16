@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Query,
 } from '@nestjs/common';
@@ -32,5 +34,14 @@ export class BookingsController {
   @Get()
   getBookings(@Query('resourceId') resourceId?: string) {
     return this.bookingsService.getBookings(resourceId);
+  }
+
+  /**
+   * DELETE /api/bookings/:id
+   * Cancels and deletes a booking by ID.
+   */
+  @Delete(':id')
+  deleteBooking(@Param('id') id: string) {
+    return this.bookingsService.deleteBooking(id);
   }
 }

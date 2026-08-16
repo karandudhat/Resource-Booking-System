@@ -19,11 +19,14 @@ function formatBookingTime(isoString) {
   }
 }
 
-export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger }) => {
+export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger, onBookingCanceled }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [openActionId, setOpenActionId] = useState<string | null>(null);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchBookings = () => {
     if (!resourceId) return;
     setLoading(true);
     api.getBookings(resourceId)
@@ -34,11 +37,45 @@ export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger
         setBookings([]);
       })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchBookings();
   }, [resourceId, refreshTrigger]);
+
+  const handleCopyId = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setOpenActionId(null);
+    setTimeout(() => setCopiedId(null), 2500);
+  };
+
+  const handleConfirmCancelBooking = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      setCancelingId(id);
+      await api.deleteBooking(id);
+      setOpenActionId(null);
+      setCancelingId(null);
+      fetchBookings();
+      if (onBookingCanceled) onBookingCanceled();
+    } catch (err) {
+      alert('Could not cancel booking');
+      setCancelingId(null);
+    }
+  };
 
   return (
     <div className="table-card">
-      <h3 className="table-card-title">Upcoming Bookings</h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <h3 className="table-card-title" style={{ margin: 0 }}>Upcoming Bookings</h3>
+        {copiedId && (
+          <span className="ui-badge ui-badge-success" style={{ fontSize: 11 }}>
+            ✓ Reference ID Copied!
+          </span>
+        )}
+      </div>
       
       {loading ? (
         <p style={{ fontSize: 13, color: 'var(--text-muted)', padding: '12px 0' }}>Loading bookings…</p>
@@ -57,7 +94,7 @@ export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger
                 <th>Purpose</th>
                 <th>Booked By</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -72,7 +109,41 @@ export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger
                   <td>
                     <span className="table-status-confirmed">Confirmed</span>
                   </td>
-                  <td style={{ fontWeight: 700, color: 'var(--text-muted)', cursor: 'pointer' }}>⋮</td>
+                  <td style={{ textAlign: 'right', position: 'relative' }}>
+                    <button
+                      className="btn-white"
+                      style={{ padding: '4px 8px', fontSize: 13, marginLeft: 'auto' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenActionId(openActionId === b.id ? null : b.id);
+                      }}
+                      title="Row actions"
+                    >
+                      ⋮
+                    </button>
+
+                    {/* Interactive Dropdown Menu for 3 dots */}
+                    {openActionId === b.id && (
+                      <div
+                        className="table-action-popover"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          className="popover-item"
+                          onClick={(e) => handleCopyId(b.id, e)}
+                        >
+                          📋 Copy Ref ID ({b.id.slice(0, 6)}…)
+                        </button>
+                        <button
+                          className="popover-item danger"
+                          onClick={(e) => handleConfirmCancelBooking(b.id, e)}
+                          disabled={cancelingId === b.id}
+                        >
+                          {cancelingId === b.id ? '⏳ Canceling…' : '❌ Cancel Booking'}
+                        </button>
+                      </div>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -101,5 +101,14 @@ export class BookingsService {
        ORDER  BY start_time`,
     );
     return result.rows;
+  async deleteBooking(id: string): Promise<{ success: boolean }> {
+    const result = await this.pool.query(
+      `DELETE FROM bookings WHERE id = $1 RETURNING id`,
+      [id],
+    );
+    if (result.rowCount === 0) {
+      throw new BadRequestException(`Booking with ID ${id} not found`);
+    }
+    return { success: true };
   }
 }

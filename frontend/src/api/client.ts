@@ -28,6 +28,16 @@ export const api = {
     return get(`/bookings${params}`);
   },
 
+  async deleteBooking(id: string): Promise<{ success: boolean }> {
+    const res = await fetch(`${BASE}/bookings/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to delete booking ${id}`);
+    }
+    return res.json();
+  },
+
   async createBooking(payload: CreateBookingPayload): Promise<BookingResult> {
     const res = await fetch(`${BASE}/bookings`, {
       method: 'POST',

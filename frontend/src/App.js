@@ -238,6 +238,7 @@ export default function App() {
             resourceId={selectedResource?.id}
             resourceName={selectedResource?.name}
             refreshTrigger={refreshTrigger}
+            onBookingCanceled={refresh}
           />
 
         </section>
