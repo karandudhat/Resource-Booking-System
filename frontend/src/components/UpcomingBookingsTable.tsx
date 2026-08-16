@@ -23,7 +23,11 @@ export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [openActionId, setOpenActionId] = useState<string | null>(null);
+  
+  // Modal dialog states for canceling (No browser alert)
+  const [confirmCancelBooking, setConfirmCancelBooking] = useState<Booking | null>(null);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const fetchBookings = () => {
@@ -51,18 +55,26 @@ export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger
     setTimeout(() => setCopiedId(null), 2500);
   };
 
-  const handleConfirmCancelBooking = async (id: string, e: React.MouseEvent) => {
+  const handlePromptCancel = (booking: Booking, e: React.MouseEvent) => {
     e.stopPropagation();
+    setOpenActionId(null);
+    setConfirmCancelBooking(booking);
+  };
+
+  const executeCancelBooking = async () => {
+    if (!confirmCancelBooking) return;
+    const id = confirmCancelBooking.id;
     try {
       setCancelingId(id);
+      setCancelError(null);
       await api.deleteBooking(id);
-      setOpenActionId(null);
       setCancelingId(null);
+      setConfirmCancelBooking(null);
       fetchBookings();
       if (onBookingCanceled) onBookingCanceled();
-    } catch (err) {
-      alert('Could not cancel booking');
+    } catch (err: any) {
       setCancelingId(null);
+      setCancelError(err.message || 'Could not cancel booking at this time.');
     }
   };
 
@@ -136,10 +148,9 @@ export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger
                         </button>
                         <button
                           className="popover-item danger"
-                          onClick={(e) => handleConfirmCancelBooking(b.id, e)}
-                          disabled={cancelingId === b.id}
+                          onClick={(e) => handlePromptCancel(b, e)}
                         >
-                          {cancelingId === b.id ? '⏳ Canceling…' : '❌ Cancel Booking'}
+                          ❌ Cancel Booking
                         </button>
                       </div>
                     )}
@@ -148,6 +159,49 @@ export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Clean Modal Dialog for Cancel Confirmation (NO Browser alert) */}
+      {confirmCancelBooking && (
+        <div className="ui-dialog-backdrop" onClick={() => setConfirmCancelBooking(null)}>
+          <div className="ui-dialog-content" onClick={e => e.stopPropagation()}>
+            <div className="dialog-header">
+              <span className="ui-badge ui-badge-warning">Cancel Confirmation</span>
+              <h3 className="dialog-title" style={{ marginTop: 8 }}>Cancel Booking?</h3>
+              <p className="dialog-description">
+                Are you sure you want to cancel this booking for <strong>{resourceName}</strong>? This slot will become available for others to book.
+              </p>
+            </div>
+
+            <div className="dialog-body-box">
+              Ref: {confirmCancelBooking.id}
+            </div>
+
+            {cancelError && (
+              <p style={{ color: '#dc2626', fontSize: 13, textAlign: 'center' }}>
+                {cancelError}
+              </p>
+            )}
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+              <button
+                className="ui-button ui-button-default"
+                style={{ background: '#dc2626', flex: 1 }}
+                onClick={executeCancelBooking}
+                disabled={!!cancelingId}
+              >
+                {cancelingId ? 'Canceling…' : 'Yes, Cancel Booking'}
+              </button>
+              <button
+                className="ui-button ui-button-outline"
+                onClick={() => setConfirmCancelBooking(null)}
+                style={{ flex: 1 }}
+              >
+                Keep Booking
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
