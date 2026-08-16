@@ -581,55 +581,6 @@ body {
   border-radius: 6px;
 }
 
-/* ── 4 Feature Highlights Banner ─────────────────────────────────── */
-.feature-highlights-banner {
-  background: #eff6ff;
-  border: 1px solid #dbeafe;
-  border-radius: var(--radius-lg);
-  padding: 20px 24px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-@media (max-width: 900px) {
-  .feature-highlights-banner {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.feature-box {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.feature-icon-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  flex-shrink: 0;
-}
-
-.feature-title {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #1e40af;
-}
-
-.feature-desc {
-  font-size: 11.5px;
-  color: #3b82f6;
-  margin-top: 2px;
-  line-height: 1.35;
-}
-
 /* ── Upcoming Bookings Table Card ────────────────────────────────── */
 .table-card {
   background: #ffffff;
@@ -686,4 +637,127 @@ body {
   color: #4f46e5;
   text-decoration: none;
   margin-top: 14px;
+}
+
+/* ── Modal Dialog Overlay & Card (Fixed Position Backdrop) ────────── */
+.ui-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fade-in 0.2s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ui-dialog-content {
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: scale-up 0.2s ease;
+}
+
+@keyframes scale-up {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.dialog-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dialog-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.dialog-description {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.dialog-body-box {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.ui-button-default {
+  background: #16a34a;
+  color: #ffffff;
+}
+.ui-button-default:hover {
+  background: #15803d;
+}
+
+.ui-button-outline {
+  background: #ffffff;
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+.ui-button-outline:hover {
+  background: #f8fafc;
+}
+
+.ui-button-secondary {
+  background: #f1f5f9;
+  color: var(--text-main);
+}
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ui-badge-success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ui-badge-warning {
+  background: #fef3c7;
+  color: #b45309;
 }
