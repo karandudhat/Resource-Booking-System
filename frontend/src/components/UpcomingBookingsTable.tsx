@@ -85,7 +85,7 @@ export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger
           <p style={{ fontSize: 12, marginTop: 4 }}>Book a slot above to see it appear here live in real-time!</p>
         </div>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <div className="table-scroll-container">
           <table className="custom-table">
             <thead>
               <tr>
