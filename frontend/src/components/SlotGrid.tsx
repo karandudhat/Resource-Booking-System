@@ -17,27 +17,27 @@ function getHourUTC(isoString) {
 export const SlotGrid = ({ slots, loading, error, displayTimezone, onBook, bookingSlot }) => {
   if (loading) {
     return (
-      <div className="ui-card" style={{ padding: 40, textAlign: 'center' }}>
-        <p style={{ fontSize: 14, color: 'hsl(var(--muted-foreground))' }}>Loading available slots…</p>
+      <div className="slot-section-card" style={{ textAlign: 'center', padding: 40 }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading live slots from database…</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="ui-card" style={{ padding: 40, textAlign: 'center', borderColor: 'hsl(var(--destructive))' }}>
-        <p style={{ fontWeight: 600, fontSize: 15, color: 'hsl(var(--destructive))' }}>Error loading slots</p>
-        <p style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>{error}</p>
+      <div className="slot-section-card" style={{ textAlign: 'center', padding: 40, borderColor: '#fca5a5' }}>
+        <p style={{ fontWeight: 700, color: '#dc2626' }}>Failed to fetch slots</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>{error}</p>
       </div>
     );
   }
 
   if (!slots || slots.length === 0) {
     return (
-      <div className="ui-card" style={{ padding: 40, textAlign: 'center' }}>
-        <p style={{ fontWeight: 600, fontSize: 15 }}>No slots available</p>
-        <p style={{ fontSize: 13, color: 'hsl(var(--muted-foreground))', marginTop: 4 }}>
-          This resource has no operating hours on the selected date.
+      <div className="slot-section-card" style={{ textAlign: 'center', padding: 40 }}>
+        <p style={{ fontWeight: 700, fontSize: 15 }}>No Operating Windows Available</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
+          This resource is not operating on the selected date or time window.
         </p>
       </div>
     );
@@ -49,56 +49,59 @@ export const SlotGrid = ({ slots, loading, error, displayTimezone, onBook, booki
   const eveningSlots   = slots.filter(s => getHourUTC(s.startDisplay) >= 17);
 
   const groups = [
-    { title: 'Morning', icon: '🌅', items: morningSlots },
+    { title: 'Morning', icon: '☀️', items: morningSlots },
     { title: 'Afternoon', icon: '☀️', items: afternoonSlots },
     { title: 'Evening', icon: '🌙', items: eveningSlots },
   ].filter(g => g.items.length > 0);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {groups.map(group => {
         const availableCount = group.items.filter(s => !s.isBooked).length;
         return (
-          <div key={group.title} className="ui-card slot-group-card">
-            <div className="ui-card-header" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div key={group.title} className="slot-section-card">
+            <div className="slot-section-header">
+              <div className="slot-section-title">
                 <span>{group.icon}</span>
-                <span className="ui-card-title" style={{ fontSize: 16 }}>{group.title}</span>
+                <span>{group.title}</span>
               </div>
-              <span className="ui-badge ui-badge-secondary">
+              <span className="available-count-pill">
                 {availableCount} / {group.items.length} Available
               </span>
             </div>
 
-            <div className="ui-card-content">
-              <div className="slot-grid-layout">
-                {group.items.map(slot => {
-                  const isBooking = bookingSlot?.startUtc === slot.startUtc;
-                  const start = formatTime(slot.startDisplay);
-                  const end   = formatTime(slot.endDisplay);
+            <div className="slots-grid-5col">
+              {group.items.map(slot => {
+                const isBooking = bookingSlot?.startUtc === slot.startUtc;
+                const start = formatTime(slot.startDisplay);
+                const end   = formatTime(slot.endDisplay);
 
-                  return (
-                    <button
-                      key={slot.startUtc}
-                      className={`slot-card ${slot.isBooked ? 'booked' : 'available'}`}
-                      onClick={() => !slot.isBooked && !bookingSlot && onBook(slot)}
-                      disabled={slot.isBooked || !!bookingSlot}
-                    >
-                      <span className="slot-time-text">
-                        {start} – {end}
-                      </span>
-                      
-                      {isBooking ? (
-                        <span className="ui-badge ui-badge-secondary" style={{ fontSize: 11 }}>Booking…</span>
-                      ) : (
-                        <span className={`ui-badge ${slot.isBooked ? 'ui-badge-outline' : 'ui-badge-success'}`} style={{ fontSize: 11 }}>
-                          {slot.isBooked ? 'Reserved' : 'Book Slot'}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                return (
+                  <div
+                    key={slot.startUtc}
+                    className={`slot-card-item ${slot.isBooked ? 'booked' : 'available'}`}
+                  >
+                    <span className="slot-time-title">
+                      {start} – {end}
+                    </span>
+
+                    {slot.isBooked ? (
+                      <span className="booked-pill-gray">Reserved</span>
+                    ) : isBooking ? (
+                      <button className="book-btn-green" disabled>
+                        <span>⌛</span> Booking…
+                      </button>
+                    ) : (
+                      <button
+                        className="book-btn-green"
+                        onClick={() => onBook(slot)}
+                      >
+                        <span>📅</span> Book Slot
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         );

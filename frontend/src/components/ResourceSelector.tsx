@@ -3,43 +3,39 @@ import React from 'react';
 export const ResourceSelector = ({ resources, selected, onSelect, loading }) => {
   if (loading || !resources || resources.length === 0) {
     return (
-      <div className="resource-grid">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="resource-item" style={{ height: 60, opacity: 0.5, background: 'hsl(var(--muted))' }} />
+      <div>
+        {[1, 2, 3, 4, 5].map(i => (
+          <div key={i} className="resource-item-btn" style={{ opacity: 0.5, height: 50 }} />
         ))}
       </div>
     );
   }
 
-  const icons = { London: '🏢', York: '🎙️', Kolkata: '🔬' };
+  const icons = { Kolkata: '🔬', London: '🏢', York: '🎙️', Tokyo: '🎙️', Sydney: '🏢' };
   const getIcon = (name) => {
     for (const [k, v] of Object.entries(icons)) if (name.includes(k)) return v;
     return '📍';
   };
 
   return (
-    <div className="resource-grid" role="listbox">
+    <div>
       {resources.map(r => {
         const isSelected = selected?.id === r.id;
         return (
           <button
             key={r.id}
-            className={`resource-item ${isSelected ? 'active' : ''}`}
+            className={`resource-item-btn ${isSelected ? 'selected' : ''}`}
             onClick={() => onSelect(r)}
-            role="option"
-            aria-selected={isSelected}
           >
-            <div className="resource-icon">
+            <div className="resource-item-icon">
               {getIcon(r.name)}
             </div>
-            <div className="resource-details">
-              <div className="resource-title">{r.name}</div>
-              <div className="resource-sub">{r.timezone}</div>
+            <div className="resource-item-info">
+              <div className="resource-item-name">{r.name}</div>
+              <div className="resource-item-tz">{r.timezone}</div>
             </div>
             {isSelected && (
-              <span className="ui-badge ui-badge-default" style={{ padding: '4px 8px', fontSize: 11 }}>
-                Selected
-              </span>
+              <div className="resource-item-check">✓</div>
             )}
           </button>
         );

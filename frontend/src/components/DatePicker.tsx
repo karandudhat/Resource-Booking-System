@@ -11,55 +11,50 @@ function tomorrowLocal() {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-function nextMondayLocal() {
+function nextWeekLocal() {
   const d = new Date();
-  const day = d.getDay();
-  const diff = d.getDate() + (day === 0 ? 1 : 8 - day);
-  d.setDate(diff);
+  d.setDate(d.getDate() + 7);
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 export const DatePicker = ({ value, onChange, disabled }) => {
   const today = todayLocal();
   const tomorrow = tomorrowLocal();
-  const nextMonday = nextMondayLocal();
+  const nextWeek = nextWeekLocal();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <label className="ui-label">Booking Date</label>
-      
-      <div className="ui-tabs-list">
+    <div>
+      <div className="date-tab-group">
         <button
           type="button"
-          className={`ui-tabs-trigger ${value === today ? 'active' : ''}`}
+          className={`date-tab-btn ${value === today ? 'active' : ''}`}
           onClick={() => onChange(today)}
         >
           Today
         </button>
         <button
           type="button"
-          className={`ui-tabs-trigger ${value === tomorrow ? 'active' : ''}`}
+          className={`date-tab-btn ${value === tomorrow ? 'active' : ''}`}
           onClick={() => onChange(tomorrow)}
         >
           Tomorrow
         </button>
         <button
           type="button"
-          className={`ui-tabs-trigger ${value === nextMonday ? 'active' : ''}`}
-          onClick={() => onChange(nextMonday)}
+          className={`date-tab-btn ${value === nextWeek ? 'active' : ''}`}
+          onClick={() => onChange(nextWeek)}
         >
-          Next Mon
+          Next 7 Days
         </button>
       </div>
 
       <input
         type="date"
-        className="ui-input"
+        className="date-input-field"
         value={value}
         min={today}
         onChange={e => onChange(e.target.value)}
         disabled={disabled}
-        aria-label="Select booking date"
       />
     </div>
   );

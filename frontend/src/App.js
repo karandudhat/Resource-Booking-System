@@ -4,14 +4,17 @@ import { DatePicker } from './components/DatePicker';
 import { TimezoneSelector, COMMON_TIMEZONES } from './components/TimezoneSelector';
 import { SlotGrid } from './components/SlotGrid';
 import { BookingConfirmation } from './components/BookingConfirmation';
+import { UpcomingBookingsTable } from './components/UpcomingBookingsTable';
 import { api } from './api/client';
 import { useSlots } from './hooks/useSlots';
 
-/* ── Fallback resources (shown when backend is not yet running) ─── */
-const FALLBACK_RESOURCES = [
+/* ── All Resources listed in reference design ─── */
+const MOCK_RESOURCES = [
+  { id: '33333333-3333-3333-3333-333333333333', name: 'Lab C — Kolkata',     timezone: 'Asia/Kolkata' },
   { id: '11111111-1111-1111-1111-111111111111', name: 'Room A — London',     timezone: 'Europe/London' },
   { id: '22222222-2222-2222-2222-222222222222', name: 'Studio B — New York', timezone: 'America/New_York' },
-  { id: '33333333-3333-3333-3333-333333333333', name: 'Lab C — Kolkata',     timezone: 'Asia/Kolkata' },
+  { id: '44444444-4444-4444-4444-444444444444', name: 'Meeting Room D — Tokyo', timezone: 'Asia/Tokyo' },
+  { id: '55555555-5555-5555-5555-555555555555', name: 'Workspace E — Sydney', timezone: 'Australia/Sydney' },
 ];
 
 function detectTimezone() {
@@ -19,7 +22,7 @@ function detectTimezone() {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     if (COMMON_TIMEZONES.some(t => t.value === tz)) return tz;
   } catch (e) {}
-  return 'UTC';
+  return 'Asia/Kolkata';
 }
 
 function todayString() {
@@ -29,18 +32,18 @@ function todayString() {
 
 function formatDateLong(dateStr) {
   try {
-    return new Date(dateStr + 'T12:00:00Z').toLocaleDateString(undefined, {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    return new Date(dateStr + 'T12:00:00Z').toLocaleDateString('en-GB', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
     });
   } catch { return dateStr; }
 }
 
 export default function App() {
-  const [resources,       setResources]       = useState(FALLBACK_RESOURCES);
+  const [resources,       setResources]       = useState(MOCK_RESOURCES);
   const [resourcesLoading, ] = useState(false);
   const [backendOnline,   setBackendOnline]   = useState(false);
 
-  const [selectedResource, setSelectedResource] = useState(FALLBACK_RESOURCES[0]);
+  const [selectedResource, setSelectedResource] = useState(MOCK_RESOURCES[0]);
   const [selectedDate,     setSelectedDate]     = useState(todayString());
   const [displayTimezone,  setDisplayTimezone]  = useState(detectTimezone);
 
@@ -90,134 +93,185 @@ export default function App() {
   }, []);
 
   return (
-    <div className="shadcn-app">
+    <div className="app-wrapper">
 
-      {/* ── Navbar Header ─────────────────────────────────────────────── */}
-      <header className="shadcn-header">
-        <div className="header-container">
-          <div className="brand-section">
-            <div className="brand-icon">⚡</div>
-            <div>
-              <h1 className="brand-title">Resource Booking</h1>
-              <p className="brand-subtitle">shadcn/ui Design Engine</p>
+      {/* ── Top Navbar Header ────────────────────────────────────────── */}
+      <header className="top-navbar">
+        <div className="navbar-content">
+          <div className="brand-block">
+            <div className="brand-icon-box">⚡</div>
+            <div className="brand-text-block">
+              <h1>Resource Booking</h1>
+              <p>Smart workspace scheduling</p>
             </div>
           </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span className="ui-badge ui-badge-success">
+
+          <div className="navbar-right">
+            <select
+              className="tz-header-select"
+              value={displayTimezone}
+              onChange={e => setDisplayTimezone(e.target.value)}
+            >
+              <option value="Asia/Kolkata">🌐 UTC (Asia/Kolkata)</option>
+              <option value="Europe/London">🌐 UTC (Europe/London)</option>
+              <option value="America/New_York">🌐 UTC (America/New_York)</option>
+              <option value="UTC">🌐 UTC (Global)</option>
+            </select>
+
+            <div className="gist-pill">
               PostgreSQL GiST Lock
-            </span>
-            <span className="ui-badge ui-badge-outline" style={{ fontFamily: 'monospace' }}>
-              demo-user
-            </span>
+            </div>
+
+            <div className="notification-bell">
+              🔔
+              <span className="bell-count">3</span>
+            </div>
+
+            <div className="user-profile-pill">
+              <div className="user-avatar">DU</div>
+              <div className="user-details">
+                <span className="name">demo-user</span>
+                <span className="role">Administrator</span>
+              </div>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="app-main">
+      {/* ── Main Dashboard Container ──────────────────────────────────── */}
+      <main className="main-container">
 
-        {/* ── Sidebar Panel ────────────────────────────────────────── */}
-        <aside className="sidebar-panel">
+        {/* ── Left Sidebar Column ────────────────────────────────────── */}
+        <aside className="sidebar-column">
 
-          <div className="ui-card">
-            <div className="ui-card-header">
-              <span className="ui-card-title">Select Resource</span>
-              <span className="ui-card-description">Choose a room or workspace</span>
-            </div>
-            <div className="ui-card-content">
-              <ResourceSelector
-                resources={resources}
-                selected={selectedResource}
-                onSelect={r => setSelectedResource(r)}
-                loading={resourcesLoading}
-              />
-            </div>
+          {/* 1. Select Resource */}
+          <div className="sidebar-box">
+            <h2 className="sidebar-step-title">1. Select Resource</h2>
+            <p className="sidebar-step-sub">Choose a room or workspace</p>
+            <ResourceSelector
+              resources={resources}
+              selected={selectedResource}
+              onSelect={r => setSelectedResource(r)}
+              loading={resourcesLoading}
+            />
           </div>
 
-          <div className="ui-card">
-            <div className="ui-card-content" style={{ paddingTop: 24 }}>
-              <DatePicker
-                value={selectedDate}
-                onChange={setSelectedDate}
-                disabled={false}
-              />
-            </div>
+          {/* 2. Booking Date */}
+          <div className="sidebar-box">
+            <h2 className="sidebar-step-title" style={{ marginBottom: 12 }}>2. Booking Date</h2>
+            <DatePicker
+              value={selectedDate}
+              onChange={setSelectedDate}
+              disabled={false}
+            />
           </div>
 
-          <div className="ui-card">
-            <div className="ui-card-content" style={{ paddingTop: 24 }}>
-              <TimezoneSelector
-                value={displayTimezone}
-                onChange={setDisplayTimezone}
-              />
-            </div>
+          {/* 3. Display Timezone */}
+          <div className="sidebar-box">
+            <h2 className="sidebar-step-title" style={{ marginBottom: 12 }}>3. Display Timezone</h2>
+            <TimezoneSelector
+              value={displayTimezone}
+              onChange={setDisplayTimezone}
+            />
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>
+              All times are shown in your selected timezone
+            </p>
           </div>
 
+          {/* RESOURCE TIMEZONE GRAY CARD */}
           {selectedResource && (
-            <div className="ui-card" style={{ background: 'hsl(var(--muted))', borderColor: 'transparent' }}>
-              <div className="ui-card-content" style={{ padding: 16 }}>
-                <span className="ui-label" style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>
-                  Resource Timezone
-                </span>
-                <div style={{ fontWeight: 600, fontSize: 14, marginTop: 2 }}>{selectedResource.timezone}</div>
-                <p style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginTop: 4, lineHeight: 1.4 }}>
-                  Availability is evaluated in native timezone via Luxon IANA rules.
-                </p>
+            <div className="resource-tz-gray-card">
+              <div className="label">RESOURCE TIMEZONE</div>
+              <div className="value">{selectedResource.timezone}</div>
+              <div className="desc">
+                Availability is evaluated in native timezone via Luxon IANA rules.
               </div>
             </div>
           )}
 
         </aside>
 
-        {/* ── Content Panel ────────────────────────────────────────── */}
-        <section className="content-panel">
-          {!selectedResource ? (
-            <div className="ui-card" style={{ padding: 60, textAlign: 'center' }}>
-              <h2 className="ui-card-title">Select a Resource</h2>
-              <p className="ui-card-description">Pick a room or consultant from the sidebar to view available booking slots.</p>
-            </div>
-          ) : (
-            <>
-              <div className="ui-card">
-                <div className="ui-card-header" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <h2 className="ui-card-title" style={{ fontSize: 20 }}>{selectedResource.name}</h2>
-                    <p className="ui-card-description" style={{ marginTop: 2 }}>
-                      {formatDateLong(selectedDate)} • Timezone: {displayTimezone}
-                    </p>
-                  </div>
+        {/* ── Right Content Column ────────────────────────────────────── */}
+        <section className="content-column">
 
-                  {!backendOnline && (
-                    <span className="ui-badge ui-badge-warning">
-                      Backend Offline
-                    </span>
-                  )}
-                </div>
+          {/* Title Banner Row */}
+          <div className="resource-header-row">
+            <div>
+              <div className="resource-title-wrap">
+                <h2 className="resource-main-name">{selectedResource?.name}</h2>
+                <span className="live-badge">Live</span>
               </div>
+              <p className="resource-date-sub">
+                {formatDateLong(selectedDate)} • Timezone: UTC ({displayTimezone})
+              </p>
+            </div>
 
-              {!backendOnline ? (
-                <div className="ui-card" style={{ padding: 40, textAlign: 'center' }}>
-                  <h3 className="ui-card-title">Backend Connection Required</h3>
-                  <p className="ui-card-description" style={{ marginTop: 4 }}>
-                    Start NestJS and PostgreSQL to interact with live database availability.
-                  </p>
-                </div>
-              ) : (
-                <SlotGrid
-                  slots={slots}
-                  loading={slotsLoading}
-                  error={slotsError}
-                  displayTimezone={displayTimezone}
-                  onBook={handleBook}
-                  bookingSlot={bookingSlot}
-                />
-              )}
-            </>
-          )}
+            <div className="action-btn-group">
+              <button className="btn-white">
+                <span>🔗</span> Share
+              </button>
+              <button className="btn-white">
+                <span>📅</span> Add to Calendar
+              </button>
+              <button className="btn-black">
+                <span>ℹ️</span> Resource Details
+              </button>
+            </div>
+          </div>
+
+          {/* Slot Grid View */}
+          <SlotGrid
+            slots={slots}
+            loading={slotsLoading}
+            error={slotsError}
+            displayTimezone={displayTimezone}
+            onBook={handleBook}
+            bookingSlot={bookingSlot}
+          />
+
+          {/* 4 Feature Highlights Banner */}
+          <div className="feature-highlights-banner">
+            <div className="feature-box">
+              <div className="feature-icon-circle">⚡</div>
+              <div>
+                <div className="feature-title">Instant Booking</div>
+                <div className="feature-desc">Book resources in real-time with instant confirmation</div>
+              </div>
+            </div>
+
+            <div className="feature-box">
+              <div className="feature-icon-circle">🗓️</div>
+              <div>
+                <div className="feature-title">Smart Availability</div>
+                <div className="feature-desc">Live availability with conflict avoidance</div>
+              </div>
+            </div>
+
+            <div className="feature-box">
+              <div className="feature-icon-circle">🛡️</div>
+              <div>
+                <div className="feature-title">Calendar Sync</div>
+                <div className="feature-desc">Sync with Google, Outlook and Apple Calendar</div>
+              </div>
+            </div>
+
+            <div className="feature-box">
+              <div className="feature-icon-circle">🔒</div>
+              <div>
+                <div className="feature-title">Secure &amp; Reliable</div>
+                <div className="feature-desc">Enterprise-grade security and data protection</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Upcoming Bookings Table */}
+          <UpcomingBookingsTable resourceName={selectedResource?.name} />
+
         </section>
 
       </main>
 
+      {/* Booking Modal / Confirmation */}
       <BookingConfirmation
         result={bookingResult}
         slot={resultSlot}
