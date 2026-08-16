@@ -30,7 +30,7 @@ export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const fetchBookings = () => {
+  const fetchBookings = React.useCallback(() => {
     if (!resourceId) return;
     setLoading(true);
     api.getBookings(resourceId)
@@ -41,11 +41,11 @@ export const UpcomingBookingsTable = ({ resourceId, resourceName, refreshTrigger
         setBookings([]);
       })
       .finally(() => setLoading(false));
-  };
+  }, [resourceId]);
 
   useEffect(() => {
     fetchBookings();
-  }, [resourceId, refreshTrigger]);
+  }, [fetchBookings, refreshTrigger]);
 
   const handleCopyId = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
