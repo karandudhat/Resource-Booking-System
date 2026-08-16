@@ -34,7 +34,6 @@ export const ResourceSelector = ({ resources, selected, onSelect, loading }) => 
           aria-selected={selected?.id === r.id}
           id={`resource-btn-${r.id}`}
         >
-          <div className="resource-card-bg" />
           <div className="resource-icon-wrap">
             <span>{getIcon(r.name)}</span>
           </div>

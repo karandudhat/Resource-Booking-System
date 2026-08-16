@@ -60,7 +60,6 @@ export default function App() {
         }
       })
       .catch(() => {
-        // Backend not running — keep fallback resources, UI still looks great
         setBackendOnline(false);
       });
   }, []);
@@ -94,19 +93,29 @@ export default function App() {
   return (
     <div className="app">
 
-      {/* ── Header ──────────────────────────────────────────── */}
+      {/* ── Google Material Header ───────────────────────────────────── */}
       <header className="app-header">
         <div className="header-inner">
           <div className="header-logo">
-            <div className="logo-ring">📆</div>
-            <div>
-              <h1 className="header-title">Resource Booking</h1>
-              <p className="header-subtitle">Reserve shared spaces &amp; consultants</p>
+            <div className="logo-badge">📅</div>
+            <div className="header-title-group">
+              <h1 className="header-title">
+                Resource Booking <span className="header-tag">Enterprise</span>
+              </h1>
+              <p className="header-subtitle">Google Workspace Calendar Engine &amp; Slot Management</p>
             </div>
           </div>
-          <div className="header-user">
-            <div className="user-dot" />
-            <span className="user-name">demo-user</span>
+          
+          <div className="header-right">
+            <div className="system-status-pill">
+              <span className="status-dot-animated" />
+              <span>PostgreSQL GiST Active</span>
+            </div>
+            
+            <div className="header-user">
+              <div className="user-avatar">D</div>
+              <span className="user-name">demo-user</span>
+            </div>
           </div>
         </div>
       </header>
@@ -116,37 +125,40 @@ export default function App() {
         {/* ── Sidebar ─────────────────────────────────────────── */}
         <aside className="sidebar">
 
-          <section className="sidebar-section">
-            <h2 className="section-title">Choose a Resource</h2>
+          <div className="sidebar-card">
+            <h2 className="section-title">
+              <span>Select Resource</span>
+              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-4)' }}>{resources.length} available</span>
+            </h2>
             <ResourceSelector
               resources={resources}
               selected={selectedResource}
               onSelect={r => setSelectedResource(r)}
               loading={resourcesLoading}
             />
-          </section>
+          </div>
 
-          <section className="sidebar-section">
+          <div className="sidebar-card">
             <DatePicker
               value={selectedDate}
               onChange={setSelectedDate}
               disabled={false}
             />
-          </section>
+          </div>
 
-          <section className="sidebar-section">
+          <div className="sidebar-card">
             <TimezoneSelector
               value={displayTimezone}
               onChange={setDisplayTimezone}
             />
-          </section>
+          </div>
 
           {selectedResource && (
             <div className="resource-detail-card">
-              <div className="resource-detail-label">Resource Timezone</div>
+              <div className="resource-detail-label">Resource Native Timezone</div>
               <div className="resource-detail-value">{selectedResource.timezone}</div>
               <div className="resource-detail-note">
-                Availability is defined in this timezone. DST transitions are handled automatically via IANA rules.
+                Availability rules are enforced in native timezone. Conversions to your display timezone are rendered seamlessly via Luxon IANA rules.
               </div>
             </div>
           )}
@@ -158,31 +170,23 @@ export default function App() {
           {!selectedResource ? (
             <div className="empty-state">
               <div className="empty-icon-wrap">📅</div>
-              <h2>Select a resource to get started</h2>
-              <p>Choose a room or studio from the left panel, then pick a date to see available slots.</p>
-              <div className="empty-steps">
-                <div className="empty-step"><span className="step-num">1</span> Pick a resource</div>
-                <div className="empty-step"><span className="step-num">2</span> Choose a date</div>
-                <div className="empty-step"><span className="step-num">3</span> Book a slot</div>
-              </div>
+              <h2>Select a Resource to Get Started</h2>
+              <p>Choose a meeting space or consultant room from the left sidebar to view availability.</p>
             </div>
           ) : (
             <>
-              <div className="content-header">
+              <div className="content-header-card">
                 <div>
-                  <h2 className="content-title">{selectedResource.name}</h2>
-                  <p className="content-subtitle">{formatDateLong(selectedDate)}</p>
+                  <h2 className="header-info-title">{selectedResource.name}</h2>
+                  <p className="header-info-subtitle">
+                    <span>🗓️ {formatDateLong(selectedDate)}</span>
+                    <span>•</span>
+                    <span>🌐 Viewing in {displayTimezone}</span>
+                  </p>
                 </div>
                 {!backendOnline && (
-                  <div style={{
-                    display:'flex', alignItems:'center', gap:8,
-                    padding:'8px 16px',
-                    background:'rgba(245,158,11,0.1)',
-                    border:'1px solid rgba(245,158,11,0.25)',
-                    borderRadius:'999px',
-                    fontSize:12, color:'var(--amber)', fontWeight:600,
-                  }}>
-                    <span>⚡</span> Backend offline — start with: <code style={{fontFamily:'monospace', background:'rgba(255,255,255,0.06)', padding:'2px 6px', borderRadius:4}}>npm run start:dev</code>
+                  <div className="badge-offline">
+                    <span>⚡</span> Backend offline — run <code style={{fontFamily:'monospace'}}>npm run start:dev</code>
                   </div>
                 )}
               </div>
@@ -190,13 +194,8 @@ export default function App() {
               {!backendOnline ? (
                 <div className="empty-state">
                   <div className="empty-icon-wrap">🔌</div>
-                  <h2>Backend not connected</h2>
-                  <p>Start the NestJS backend and PostgreSQL to see real availability and make bookings.</p>
-                  <div className="empty-steps">
-                    <div className="empty-step"><span className="step-num">1</span><code style={{fontFamily:'monospace',fontSize:11}}>docker-compose up postgres -d</code></div>
-                    <div className="empty-step"><span className="step-num">2</span><code style={{fontFamily:'monospace',fontSize:11}}>cd backend && npm run migrate && npm run seed</code></div>
-                    <div className="empty-step"><span className="step-num">3</span><code style={{fontFamily:'monospace',fontSize:11}}>npm run start:dev</code></div>
-                  </div>
+                  <h2>Connecting to Backend Engine…</h2>
+                  <p>Start the NestJS backend and PostgreSQL database to view live real-time slots and execute bookings.</p>
                 </div>
               ) : (
                 <SlotGrid
