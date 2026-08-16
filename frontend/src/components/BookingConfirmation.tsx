@@ -31,37 +31,35 @@ export const BookingConfirmation = ({ result, slot, displayTimezone, onClose }) 
     const gCalUrl = generateGoogleCalendarUrl(slot, displayTimezone);
 
     return (
-      <div className="booking-modal-overlay" onClick={onClose}>
-        <div className="booking-modal-card" onClick={e => e.stopPropagation()}>
-          <div className="modal-icon-ring success">
-            ✓
+      <div className="ui-dialog-backdrop" onClick={onClose}>
+        <div className="ui-dialog-content" onClick={e => e.stopPropagation()}>
+          <div className="dialog-header">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span className="ui-badge ui-badge-success">Confirmed</span>
+              <span style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}>Ref: {result.booking.id.slice(0, 8)}</span>
+            </div>
+            <h3 className="dialog-title" style={{ marginTop: 8 }}>Booking Confirmed</h3>
+            <p className="dialog-description">
+              Your resource slot has been atomically reserved.
+            </p>
           </div>
-          
-          <h3 className="modal-title">Booking Confirmed!</h3>
-          
-          <div className="modal-time-highlight">
+
+          <div className="dialog-body-box">
             {start} – {end} ({displayTimezone})
           </div>
 
-          <div className="modal-ref-code">
-            Ref ID: {result.booking.id}
-          </div>
-
-          <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.5 }}>
-            Your slot has been atomically locked in PostgreSQL database with zero risk of overlap.
-          </p>
-
-          <div className="modal-actions">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
             <a
               href={gCalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary-google"
+              className="ui-button ui-button-default"
+              style={{ textDecoration: 'none' }}
             >
-              <span>📅</span> Add to Google Calendar
+              Add to Google Calendar
             </a>
-            <button className="btn-secondary-google" onClick={onClose}>
-              Done &amp; Close
+            <button className="ui-button ui-button-outline" onClick={onClose}>
+              Done
             </button>
           </div>
         </div>
@@ -71,23 +69,21 @@ export const BookingConfirmation = ({ result, slot, displayTimezone, onClose }) 
 
   const err = result;
   return (
-    <div className="booking-modal-overlay" onClick={onClose}>
-      <div className="booking-modal-card" onClick={e => e.stopPropagation()}>
-        <div className={`modal-icon-ring ${err.isConflict ? 'conflict' : 'error'}`}>
-          {err.isConflict ? '⚡' : '✕'}
+    <div className="ui-dialog-backdrop" onClick={onClose}>
+      <div className="ui-dialog-content" onClick={e => e.stopPropagation()}>
+        <div className="dialog-header">
+          <span className="ui-badge ui-badge-warning">{err.isConflict ? 'Slot Conflict' : 'Booking Error'}</span>
+          <h3 className="dialog-title" style={{ marginTop: 8 }}>
+            {err.isConflict ? 'Slot Already Booked' : 'Could Not Process'}
+          </h3>
+          <p className="dialog-description">
+            {err.error}
+          </p>
         </div>
-        
-        <h3 className="modal-title">
-          {err.isConflict ? 'Slot Conflict!' : 'Booking Failed'}
-        </h3>
 
-        <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5 }}>
-          {err.error}
-        </p>
-
-        <div className="modal-actions">
-          <button className="btn-secondary-google" onClick={onClose}>
-            Close &amp; Pick Another Slot
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+          <button className="ui-button ui-button-secondary" onClick={onClose}>
+            Close
           </button>
         </div>
       </div>

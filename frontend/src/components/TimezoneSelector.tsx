@@ -19,13 +19,13 @@ export const COMMON_TIMEZONES = [
 ];
 
 export const TimezoneSelector = ({ value, onChange }) => (
-  <div className="timezone-wrapper">
-    <label htmlFor="timezone-select" className="field-label">
-      <span>🌍</span> Display Timezone
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <label htmlFor="timezone-select" className="ui-label">
+      Display Timezone
     </label>
     <select
       id="timezone-select"
-      className="timezone-select"
+      className="ui-select"
       value={value}
       onChange={e => onChange(e.target.value)}
       aria-label="Select display timezone"

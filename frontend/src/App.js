@@ -29,7 +29,6 @@ function todayString() {
 
 function formatDateLong(dateStr) {
   try {
-    // Use noon UTC so timezone differences don't flip the date
     return new Date(dateStr + 'T12:00:00Z').toLocaleDateString(undefined, {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     });
@@ -91,111 +90,117 @@ export default function App() {
   }, []);
 
   return (
-    <div className="app">
+    <div className="shadcn-app">
 
-      {/* ── Google Material Header ───────────────────────────────────── */}
-      <header className="app-header">
-        <div className="header-inner">
-          <div className="header-logo">
-            <div className="logo-badge">📅</div>
-            <div className="header-title-group">
-              <h1 className="header-title">
-                Resource Booking <span className="header-tag">Enterprise</span>
-              </h1>
-              <p className="header-subtitle">Google Workspace Calendar Engine &amp; Slot Management</p>
+      {/* ── Navbar Header ─────────────────────────────────────────────── */}
+      <header className="shadcn-header">
+        <div className="header-container">
+          <div className="brand-section">
+            <div className="brand-icon">⚡</div>
+            <div>
+              <h1 className="brand-title">Resource Booking</h1>
+              <p className="brand-subtitle">shadcn/ui Design Engine</p>
             </div>
           </div>
           
-          <div className="header-right">
-            <div className="system-status-pill">
-              <span className="status-dot-animated" />
-              <span>PostgreSQL GiST Active</span>
-            </div>
-            
-            <div className="header-user">
-              <div className="user-avatar">D</div>
-              <span className="user-name">demo-user</span>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span className="ui-badge ui-badge-success">
+              PostgreSQL GiST Lock
+            </span>
+            <span className="ui-badge ui-badge-outline" style={{ fontFamily: 'monospace' }}>
+              demo-user
+            </span>
           </div>
         </div>
       </header>
 
       <main className="app-main">
 
-        {/* ── Sidebar ─────────────────────────────────────────── */}
-        <aside className="sidebar">
+        {/* ── Sidebar Panel ────────────────────────────────────────── */}
+        <aside className="sidebar-panel">
 
-          <div className="sidebar-card">
-            <h2 className="section-title">
-              <span>Select Resource</span>
-              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-4)' }}>{resources.length} available</span>
-            </h2>
-            <ResourceSelector
-              resources={resources}
-              selected={selectedResource}
-              onSelect={r => setSelectedResource(r)}
-              loading={resourcesLoading}
-            />
+          <div className="ui-card">
+            <div className="ui-card-header">
+              <span className="ui-card-title">Select Resource</span>
+              <span className="ui-card-description">Choose a room or workspace</span>
+            </div>
+            <div className="ui-card-content">
+              <ResourceSelector
+                resources={resources}
+                selected={selectedResource}
+                onSelect={r => setSelectedResource(r)}
+                loading={resourcesLoading}
+              />
+            </div>
           </div>
 
-          <div className="sidebar-card">
-            <DatePicker
-              value={selectedDate}
-              onChange={setSelectedDate}
-              disabled={false}
-            />
+          <div className="ui-card">
+            <div className="ui-card-content" style={{ paddingTop: 24 }}>
+              <DatePicker
+                value={selectedDate}
+                onChange={setSelectedDate}
+                disabled={false}
+              />
+            </div>
           </div>
 
-          <div className="sidebar-card">
-            <TimezoneSelector
-              value={displayTimezone}
-              onChange={setDisplayTimezone}
-            />
+          <div className="ui-card">
+            <div className="ui-card-content" style={{ paddingTop: 24 }}>
+              <TimezoneSelector
+                value={displayTimezone}
+                onChange={setDisplayTimezone}
+              />
+            </div>
           </div>
 
           {selectedResource && (
-            <div className="resource-detail-card">
-              <div className="resource-detail-label">Resource Native Timezone</div>
-              <div className="resource-detail-value">{selectedResource.timezone}</div>
-              <div className="resource-detail-note">
-                Availability rules are enforced in native timezone. Conversions to your display timezone are rendered seamlessly via Luxon IANA rules.
+            <div className="ui-card" style={{ background: 'hsl(var(--muted))', borderColor: 'transparent' }}>
+              <div className="ui-card-content" style={{ padding: 16 }}>
+                <span className="ui-label" style={{ fontSize: 11, color: 'hsl(var(--muted-foreground))', textTransform: 'uppercase' }}>
+                  Resource Timezone
+                </span>
+                <div style={{ fontWeight: 600, fontSize: 14, marginTop: 2 }}>{selectedResource.timezone}</div>
+                <p style={{ fontSize: 12, color: 'hsl(var(--muted-foreground))', marginTop: 4, lineHeight: 1.4 }}>
+                  Availability is evaluated in native timezone via Luxon IANA rules.
+                </p>
               </div>
             </div>
           )}
 
         </aside>
 
-        {/* ── Main panel ──────────────────────────────────────── */}
-        <section className="content">
+        {/* ── Content Panel ────────────────────────────────────────── */}
+        <section className="content-panel">
           {!selectedResource ? (
-            <div className="empty-state">
-              <div className="empty-icon-wrap">📅</div>
-              <h2>Select a Resource to Get Started</h2>
-              <p>Choose a meeting space or consultant room from the left sidebar to view availability.</p>
+            <div className="ui-card" style={{ padding: 60, textAlign: 'center' }}>
+              <h2 className="ui-card-title">Select a Resource</h2>
+              <p className="ui-card-description">Pick a room or consultant from the sidebar to view available booking slots.</p>
             </div>
           ) : (
             <>
-              <div className="content-header-card">
-                <div>
-                  <h2 className="header-info-title">{selectedResource.name}</h2>
-                  <p className="header-info-subtitle">
-                    <span>🗓️ {formatDateLong(selectedDate)}</span>
-                    <span>•</span>
-                    <span>🌐 Viewing in {displayTimezone}</span>
-                  </p>
-                </div>
-                {!backendOnline && (
-                  <div className="badge-offline">
-                    <span>⚡</span> Backend offline — run <code style={{fontFamily:'monospace'}}>npm run start:dev</code>
+              <div className="ui-card">
+                <div className="ui-card-header" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <h2 className="ui-card-title" style={{ fontSize: 20 }}>{selectedResource.name}</h2>
+                    <p className="ui-card-description" style={{ marginTop: 2 }}>
+                      {formatDateLong(selectedDate)} • Timezone: {displayTimezone}
+                    </p>
                   </div>
-                )}
+
+                  {!backendOnline && (
+                    <span className="ui-badge ui-badge-warning">
+                      Backend Offline
+                    </span>
+                  )}
+                </div>
               </div>
 
               {!backendOnline ? (
-                <div className="empty-state">
-                  <div className="empty-icon-wrap">🔌</div>
-                  <h2>Connecting to Backend Engine…</h2>
-                  <p>Start the NestJS backend and PostgreSQL database to view live real-time slots and execute bookings.</p>
+                <div className="ui-card" style={{ padding: 40, textAlign: 'center' }}>
+                  <h3 className="ui-card-title">Backend Connection Required</h3>
+                  <p className="ui-card-description" style={{ marginTop: 4 }}>
+                    Start NestJS and PostgreSQL to interact with live database availability.
+                  </p>
                 </div>
               ) : (
                 <SlotGrid

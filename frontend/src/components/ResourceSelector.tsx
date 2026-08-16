@@ -1,18 +1,12 @@
 import React from 'react';
 
 export const ResourceSelector = ({ resources, selected, onSelect, loading }) => {
-  if (loading) {
+  if (loading || !resources || resources.length === 0) {
     return (
-      <div className="resource-skeleton">
-        {[1, 2, 3].map(i => <div key={i} className="skeleton" />)}
-      </div>
-    );
-  }
-
-  if (!resources || resources.length === 0) {
-    return (
-      <div className="resource-skeleton">
-        {[1, 2, 3].map(i => <div key={i} className="skeleton" />)}
+      <div className="resource-grid">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="resource-item" style={{ height: 60, opacity: 0.5, background: 'hsl(var(--muted))' }} />
+        ))}
       </div>
     );
   }
@@ -24,31 +18,32 @@ export const ResourceSelector = ({ resources, selected, onSelect, loading }) => 
   };
 
   return (
-    <div className="resource-list" role="listbox">
-      {resources.map(r => (
-        <button
-          key={r.id}
-          className={`resource-card ${selected?.id === r.id ? 'selected' : ''}`}
-          onClick={() => onSelect(r)}
-          role="option"
-          aria-selected={selected?.id === r.id}
-          id={`resource-btn-${r.id}`}
-        >
-          <div className="resource-icon-wrap">
-            <span>{getIcon(r.name)}</span>
-          </div>
-          <div className="resource-info">
-            <span className="resource-name">{r.name}</span>
-            <div className="resource-tz-row">
-              <span className="tz-dot" />
-              <span className="resource-tz">{r.timezone}</span>
+    <div className="resource-grid" role="listbox">
+      {resources.map(r => {
+        const isSelected = selected?.id === r.id;
+        return (
+          <button
+            key={r.id}
+            className={`resource-item ${isSelected ? 'active' : ''}`}
+            onClick={() => onSelect(r)}
+            role="option"
+            aria-selected={isSelected}
+          >
+            <div className="resource-icon">
+              {getIcon(r.name)}
             </div>
-          </div>
-          {selected?.id === r.id && (
-            <div className="resource-check">✓</div>
-          )}
-        </button>
-      ))}
+            <div className="resource-details">
+              <div className="resource-title">{r.name}</div>
+              <div className="resource-sub">{r.timezone}</div>
+            </div>
+            {isSelected && (
+              <span className="ui-badge ui-badge-default" style={{ padding: '4px 8px', fontSize: 11 }}>
+                Selected
+              </span>
+            )}
+          </button>
+        );
+      })}
     </div>
   );
 };

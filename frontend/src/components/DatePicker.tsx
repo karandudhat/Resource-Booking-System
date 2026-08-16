@@ -25,47 +25,42 @@ export const DatePicker = ({ value, onChange, disabled }) => {
   const nextMonday = nextMondayLocal();
 
   return (
-    <div className="datepicker-container">
-      <label htmlFor="date-input" className="field-label">
-        <span>📅</span> Select Booking Date
-      </label>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <label className="ui-label">Booking Date</label>
       
-      <div className="quick-date-chips">
+      <div className="ui-tabs-list">
         <button
           type="button"
-          className={`chip-btn ${value === today ? 'active' : ''}`}
+          className={`ui-tabs-trigger ${value === today ? 'active' : ''}`}
           onClick={() => onChange(today)}
         >
           Today
         </button>
         <button
           type="button"
-          className={`chip-btn ${value === tomorrow ? 'active' : ''}`}
+          className={`ui-tabs-trigger ${value === tomorrow ? 'active' : ''}`}
           onClick={() => onChange(tomorrow)}
         >
           Tomorrow
         </button>
         <button
           type="button"
-          className={`chip-btn ${value === nextMonday ? 'active' : ''}`}
+          className={`ui-tabs-trigger ${value === nextMonday ? 'active' : ''}`}
           onClick={() => onChange(nextMonday)}
         >
           Next Mon
         </button>
       </div>
 
-      <div className="date-input-wrapper">
-        <input
-          id="date-input"
-          type="date"
-          className="date-input"
-          value={value}
-          min={today}
-          onChange={e => onChange(e.target.value)}
-          disabled={disabled}
-          aria-label="Select booking date"
-        />
-      </div>
+      <input
+        type="date"
+        className="ui-input"
+        value={value}
+        min={today}
+        onChange={e => onChange(e.target.value)}
+        disabled={disabled}
+        aria-label="Select booking date"
+      />
     </div>
   );
 };
