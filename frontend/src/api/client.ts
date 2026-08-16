@@ -1,7 +1,8 @@
 import { Resource, Slot, Booking, CreateBookingPayload, BookingResult } from '../types';
 
 // In dev, CRA proxies /api → http://localhost:3001 (via "proxy" in package.json)
-const BASE = '/api';
+// In production (Vercel), we use REACT_APP_API_URL to point to the live Render backend.
+const BASE = process.env.REACT_APP_API_URL || '/api';
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`);

@@ -21,6 +21,9 @@ export const DB_POOL = 'DB_POOL';
           max: 20,               // max pool size for concurrency tests
           idleTimeoutMillis: 30000,
           connectionTimeoutMillis: 5000,
+          ssl: process.env.DATABASE_URL?.includes('render.com') || process.env.DATABASE_URL?.includes('onrender.com') || process.env.NODE_ENV === 'production' 
+            ? { rejectUnauthorized: false } 
+            : undefined
         });
 
         // Verify connectivity on startup

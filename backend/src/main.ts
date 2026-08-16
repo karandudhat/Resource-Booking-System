@@ -5,11 +5,11 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Allow the React dev server (port 3000) to call the API
+  // Allow the frontend (Vercel or localhost) to call the API
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'],
+    origin: '*', // Allows any frontend URL to connect
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: false,
   });
 

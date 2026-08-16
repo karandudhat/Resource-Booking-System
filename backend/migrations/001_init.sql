@@ -19,9 +19,9 @@
 --    do NOT overlap — correct boundary semantics.
 -- ============================================================
 
--- NOTE: btree_gist is installed by setup-db.sh (requires superuser).
--- If you skipped setup-db.sh, run this manually as a superuser first:
---   psql -d booking_db -c "CREATE EXTENSION IF NOT EXISTS btree_gist;"
+-- NOTE: btree_gist is required for the EXCLUSION constraint below.
+-- Render PostgreSQL allows this to be created by the default user.
+CREATE EXTENSION IF NOT EXISTS btree_gist;
 
 -- Resources: rooms, consultants, etc.
 CREATE TABLE IF NOT EXISTS resources (
