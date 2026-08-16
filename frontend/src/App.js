@@ -38,7 +38,7 @@ function formatDateLong(dateStr) {
 
 export default function App() {
   const [resources,       setResources]       = useState(FALLBACK_RESOURCES);
-  const [resourcesLoading,setResourcesLoading]= useState(false);
+  const [resourcesLoading, ] = useState(false);
   const [backendOnline,   setBackendOnline]   = useState(false);
 
   const [selectedResource, setSelectedResource] = useState(FALLBACK_RESOURCES[0]);
