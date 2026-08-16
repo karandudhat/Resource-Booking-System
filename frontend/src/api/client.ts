@@ -23,6 +23,11 @@ export const api = {
     return get(`/slots?${params}`);
   },
 
+  getBookings(resourceId?: string): Promise<Booking[]> {
+    const params = resourceId ? `?resourceId=${resourceId}` : '';
+    return get(`/bookings${params}`);
+  },
+
   async createBooking(payload: CreateBookingPayload): Promise<BookingResult> {
     const res = await fetch(`${BASE}/bookings`, {
       method: 'POST',

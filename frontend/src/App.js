@@ -8,7 +8,7 @@ import { UpcomingBookingsTable } from './components/UpcomingBookingsTable';
 import { api } from './api/client';
 import { useSlots } from './hooks/useSlots';
 
-/* ── All Resources listed in reference design ─── */
+/* ── All Resources ─── */
 const MOCK_RESOURCES = [
   { id: '33333333-3333-3333-3333-333333333333', name: 'Lab C — Kolkata',     timezone: 'Asia/Kolkata' },
   { id: '11111111-1111-1111-1111-111111111111', name: 'Room A — London',     timezone: 'Europe/London' },
@@ -50,6 +50,7 @@ export default function App() {
   const [bookingSlot,   setBookingSlot]   = useState(null);
   const [bookingResult, setBookingResult] = useState(null);
   const [resultSlot,    setResultSlot]    = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   /* Try to load real resources from backend */
   useEffect(() => {
@@ -85,6 +86,7 @@ export default function App() {
     setResultSlot(slot);
     setBookingResult(result);
     refresh();
+    setRefreshTrigger(prev => prev + 1);
   }, [selectedResource, backendOnline, refresh]);
 
   const dismissResult = useCallback(() => {
@@ -205,18 +207,6 @@ export default function App() {
                 {formatDateLong(selectedDate)} • Timezone: UTC ({displayTimezone})
               </p>
             </div>
-
-            <div className="action-btn-group">
-              <button className="btn-white">
-                <span>🔗</span> Share
-              </button>
-              <button className="btn-white">
-                <span>📅</span> Add to Calendar
-              </button>
-              <button className="btn-black">
-                <span>ℹ️</span> Resource Details
-              </button>
-            </div>
           </div>
 
           {/* Slot Grid View */}
@@ -229,43 +219,12 @@ export default function App() {
             bookingSlot={bookingSlot}
           />
 
-          {/* 4 Feature Highlights Banner */}
-          <div className="feature-highlights-banner">
-            <div className="feature-box">
-              <div className="feature-icon-circle">⚡</div>
-              <div>
-                <div className="feature-title">Instant Booking</div>
-                <div className="feature-desc">Book resources in real-time with instant confirmation</div>
-              </div>
-            </div>
-
-            <div className="feature-box">
-              <div className="feature-icon-circle">🗓️</div>
-              <div>
-                <div className="feature-title">Smart Availability</div>
-                <div className="feature-desc">Live availability with conflict avoidance</div>
-              </div>
-            </div>
-
-            <div className="feature-box">
-              <div className="feature-icon-circle">🛡️</div>
-              <div>
-                <div className="feature-title">Calendar Sync</div>
-                <div className="feature-desc">Sync with Google, Outlook and Apple Calendar</div>
-              </div>
-            </div>
-
-            <div className="feature-box">
-              <div className="feature-icon-circle">🔒</div>
-              <div>
-                <div className="feature-title">Secure &amp; Reliable</div>
-                <div className="feature-desc">Enterprise-grade security and data protection</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Upcoming Bookings Table */}
-          <UpcomingBookingsTable resourceName={selectedResource?.name} />
+          {/* Dynamic Upcoming Bookings Table */}
+          <UpcomingBookingsTable
+            resourceId={selectedResource?.id}
+            resourceName={selectedResource?.name}
+            refreshTrigger={refreshTrigger}
+          />
 
         </section>
 
