@@ -34,3 +34,8 @@ yarn-error.log*
 
 # Backend env (committed: .env.example only)
 backend/.env
+
+# Ignore interview guide & local markdown files (keep README.md)
+INTERVIEW_GUIDE*.md
+*.md
+!README.md

@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ═══════════════════════════════════════════════════════════════════
    Resource Booking System — Exact Match Pixel-Perfect UI
    Clean, modern, crisp SaaS Dashboard Aesthetic (Viewport Locked Layout)
